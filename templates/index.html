@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Disease Classifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1><i class="fas fa-microscope"></i> Skin Disease AI</h1>
+
+        {% if error %}
+        <div class="error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-area" id="dropArea">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <p class="upload-text">Drag & Drop or Click to Upload</p>
+                <input type="file" name="file" accept="image/*" id="fileInput" onchange="previewFile()">
+            </div>
+            <img id="preview" class="preview-image" alt="Image Preview">
+            <button type="submit" id="submitBtn">Analyze Image</button>
+        </form>
+
+        {% if prediction %}
+        <div class="result">
+            <h2>Prediction: {{ prediction }}</h2>
+            <p>Confidence: <strong>{{ (confidence * 100) | round(2) }}%</strong></p>
+
+            <div class="visualizations">
+                <div class="vis-item">
+                    <h3>Original</h3>
+                    <img src="{{ url_for('static', filename='uploads/' + original_image) }}" alt="Original Image">
+                </div>
+                <div class="vis-item">
+                    <h3>Heatmap</h3>
+                    <img src="{{ url_for('static', filename='uploads/' + heatmap_image) }}" alt="Grad-CAM Heatmap">
+                </div>
+                <div class="vis-item">
+                    <h3>Bounding Box</h3>
+                    <img src="{{ url_for('static', filename='uploads/' + bbox_image) }}" alt="Localization Logic">
+                </div>
+            </div>
+
+            {% if topk %}
+            <div class="top-predictions">
+                <h3>Top Probabilities</h3>
+                <ul>
+                    {% for label, prob in topk %}
+                    <li>
+                        <span>{{ label }}</span>
+                        <span>{{ (prob * 100) | round(2) }}%</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <footer>
+            <p>&copy; 2024 Skin Disease AI Research</p>
+        </footer>
+    </div>
+
+    <script>
+        function previewFile() {
+            const preview = document.getElementById('preview');
+            const file = document.getElementById('fileInput').files[0];
+            const reader = new FileReader();
+
+            reader.addEventListener("load", function () {
+                preview.src = reader.result;
+                preview.style.display = 'block';
+                document.querySelector('.upload-icon').style.display = 'none';
+                document.querySelector('.upload-text').style.display = 'none';
+            }, false);
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        const dropArea = document.getElementById('dropArea');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropArea.style.borderColor = 'var(--primary-color)';
+            dropArea.style.backgroundColor = '#f0f4f8';
+        }
+
+        function unhighlight(e) {
+            dropArea.style.borderColor = '#dcdde1';
+            dropArea.style.backgroundColor = 'transparent';
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            document.getElementById('fileInput').files = files;
+            previewFile();
+        }
+    </script>
+</body>
+
+</html>
