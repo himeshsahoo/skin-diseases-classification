@@ -14,7 +14,11 @@ A Flask-based web application that classifies skin diseases using a deep learnin
 1.  **Clone the repository**:
     ```bash
     git clone https://github.com/himeshsahoo/skin-diseases-classification.git
+<<<<<<< HEAD
     cd skin-disease-classification
+=======
+    cd skin-diseases-classification
+>>>>>>> 34ff348 (Prepare for GitHub upload: update README and remove inspect_layers.py)
     ```
 
 2.  **Create a virtual environment** (optional but recommended):
